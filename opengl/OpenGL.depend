@@ -1,0 +1,24 @@
+# depslib dependency file v1.0
+1531980597 source:c:\users\sabit\desktop\1305015\opengl\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<windows.h>
+	<glut.h>
+	"base.hpp"
+
+1392007564 c:\users\sabit\desktop\1305015\opengl\opengl\include\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
+1531992842 c:\users\sabit\desktop\1305015\opengl\base.hpp
+	"drawing_code.hpp"
+	<bits/stdc++.h>
+
+1531948835 c:\users\sabit\desktop\1305015\opengl\drawing_code.hpp
+	"point.hpp"
+	<bits/stdc++.h>
+
+1531992889 c:\users\sabit\desktop\1305015\opengl\point.hpp
+
