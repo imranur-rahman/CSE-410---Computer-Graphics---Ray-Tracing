@@ -5,7 +5,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-
+extern int recursion_level;
 
 extern double dotProduct(point a, point b);
 extern point crossProduct(point a, point b);
@@ -163,38 +163,39 @@ struct sphere: object{
                 }
             }
 
-//            if (level < recursion_level) {
-//
-//                start = intersectionPoint + reflection * 1.0;
-//
-//                Ray reflectionRay(start, reflection);
-//
-//                int nearest=-1;
-//                double minT = 9999999;
-//                double reflected_color[3];
-//
-//                for (int k=0; k < objects.size(); k++) {
-//
-//                    double tk = objects[k]->getIntersectionT(&reflectionRay, true);
-//
-//                    if(tk <= 0) {
-//                        continue;
-//                    } else if (tk < minT) {
-//                        minT = tk;
-//                        nearest = k;
-//                    }
-//
-//                    //cout<<tk<<endl;
-//                }
-//
-//                if(nearest!=-1) {
-//
-//                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
-//
-//                    for (int k=0; k<3; k++) {
-//                        current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
-//                    }
-//                }
+            if (level < recursion_level) {
+
+                start = intersectionPoint + reflection * 1.0;
+
+                Ray reflectionRay(start, reflection);
+
+                int nearest=-1;
+                double minT = 9999999;
+                double reflected_color[3];
+
+                for (int k=0; k < objects.size(); k++) {
+
+                    double tk = objects[k]->getIntersectionT(&reflectionRay);
+
+                    if(tk <= 0) {
+                        continue;
+                    } else if (tk < minT) {
+                        minT = tk;
+                        nearest = k;
+                    }
+
+                    //cout<<tk<<endl;
+                }
+
+                if(nearest!=-1) {
+
+                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+
+                    for (int k=0; k<3; k++) {
+                        current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
+                    }
+                }
+            }
 //
 //                start = intersectionPoint + refraction * 1.0;
 //
@@ -228,13 +229,13 @@ struct sphere: object{
 //                }
 //            }
 
-//            for (int k=0; k<3; k++) {
-//                if (current_color[k] > 1) {
-//                    current_color[k] = 1;
-//                } else if (current_color[k] < 0) {
-//                    current_color[k] = 0;
-//                }
-//            }
+            for (int k=0; k<3; k++) {
+                if (current_color[k] > 1) {
+                    current_color[k] = 1;
+                } else if (current_color[k] < 0) {
+                    current_color[k] = 0;
+                }
+            }
 
 
         }
