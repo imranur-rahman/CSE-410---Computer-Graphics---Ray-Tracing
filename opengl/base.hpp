@@ -5,8 +5,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+
+
 extern double dotProduct(point a, point b);
 extern point crossProduct(point a, point b);
+
+enum {AMBIENT, DIFFUSE, SPECULAR, REFLECTION};
 
 struct object
 {
@@ -15,10 +19,12 @@ struct object
 	int shine;
 	double color[3];
 	double co_efficients[4];
+	double source_factor = 1.0;
 
 	object(){ }
 	virtual void draw(){}
-	virtual double intersect(ray* r, double current_color[3], int level){}
+	virtual double intersect(Ray* r, double current_color[3], int level){}
+	virtual double getIntersectionT(Ray* ray){}
     void setColor(double r, double g, double b)
     {
         color[0] = r;
@@ -39,6 +45,9 @@ struct object
 
 };
 
+extern vector<object*> objects;
+extern vector<point> lights; //actually not point, vector
+
 struct sphere: object{
     sphere(point center, double radius){
         reference_point = center;
@@ -53,7 +62,7 @@ struct sphere: object{
         glPopMatrix();
     }
 
-    double getIntersectionT(ray* ray) {
+    double getIntersectionT(Ray* ray) {
 
         point start = ray->start - reference_point;
         //start = start.normalize();
@@ -74,21 +83,162 @@ struct sphere: object{
         return min(t1, t2);
     }
 
-    double intersect(ray* ray, double current_color[3], int level) {
+//    double* getColorAt(point intersectionPoint)
+//    {
+//        double
+//    }
+
+    void setColorAt(double* current_color, double* color)
+    {
+        for(int i = 0; i < 3; ++i)
+            current_color[i] = color[i] * co_efficients[AMBIENT];
+    }
+
+    point getReflection(Ray* ray, point normal) {
+        point reflection = ray->dir - 2.0 * dotProduct(ray->dir, normal) * normal;
+        reflection.normalize();
+        return reflection;
+    }
+
+    point getNormal(point intersection) {
+        point normal = intersection - reference_point;
+        normal.normalize();
+        return normal;
+    }
+
+    double intersect(Ray* ray, double current_color[3], int level) {
 
         double t = getIntersectionT(ray);
 
-        if (t <= 0) {
-            return -1;
+        if (t <= 0) return -1;
+        if (level == 0 ) return t;
+
+        point intersectionPoint = ray->start + ray->dir * t;
+
+//        for (int i=0; i<3; i++) {
+//            current_color[i] = color[i];
+//        }
+        //double* colorAt = getColorAt(intersectionPoint);
+        setColorAt(current_color, color);
+
+        point normal = getNormal(intersectionPoint);
+
+        point reflection = getReflection(ray, normal);
+
+        for (int i=0; i<lights.size(); i++) {
+
+            point direction = lights[i] - intersectionPoint;
+            direction.normalize();
+            double len = sqrt(direction.x*direction.x + direction.y*direction.y + direction.z*direction.z);
+
+            point start = intersectionPoint + direction * 1.0;
+            Ray L(start, direction);
+            //cout<<intersectionPoint<<L.start<<L.direction;
+
+            bool flag = false;
+
+            for (int j=0; j < objects.size(); j++) {
+
+                double tObj = objects[j]->getIntersectionT(&L);
+
+                if(tObj > 0 || abs(tObj) > len) {
+                    flag = true;
+                    break;
+                }
+            }
+
+            if (flag){
+
+                double lambert = dotProduct(L.dir, normal);
+                double phong = pow(dotProduct(reflection, ray->dir), shine);
+
+                //lambert = lambert > 0 ? lambert : 0;
+                //phong = phong > 0 ? phong : 0;
+                if(lambert < 0) lambert = 0;
+                if(phong < 0) phong = 0;
+
+                for (int k=0; k<3; k++) {
+                    current_color[k] += source_factor * lambert * co_efficients[DIFFUSE] * color[k];
+                    current_color[k] += source_factor * phong * co_efficients[SPECULAR] * color[k];
+                }
+            }
+
+//            if (level < recursion_level) {
+//
+//                start = intersectionPoint + reflection * 1.0;
+//
+//                Ray reflectionRay(start, reflection);
+//
+//                int nearest=-1;
+//                double minT = 9999999;
+//                double reflected_color[3];
+//
+//                for (int k=0; k < objects.size(); k++) {
+//
+//                    double tk = objects[k]->getIntersectionT(&reflectionRay, true);
+//
+//                    if(tk <= 0) {
+//                        continue;
+//                    } else if (tk < minT) {
+//                        minT = tk;
+//                        nearest = k;
+//                    }
+//
+//                    //cout<<tk<<endl;
+//                }
+//
+//                if(nearest!=-1) {
+//
+//                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+//
+//                    for (int k=0; k<3; k++) {
+//                        current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
+//                    }
+//                }
+//
+//                start = intersectionPoint + refraction * 1.0;
+//
+//                Ray refractionRay(start, refraction);
+//
+//                nearest=-1;
+//                minT = 9999999;
+//                double refracted_color[3];
+//
+//                for (int k=0; k < objects.size(); k++) {
+//
+//                    double tk = objects[k]->getIntersectionT(&refractionRay, true);
+//
+//                    if(tk <= 0) {
+//                        continue;
+//                    } else if (tk < minT) {
+//                        minT = tk;
+//                        nearest = k;
+//                    }
+//
+//                    //cout<<tk<<endl;
+//                }
+//
+//                if(nearest!=-1) {
+//
+//                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
+//
+//                    for (int k=0; k<3; k++) {
+//                        current_color[k] += refracted_color[k] * refIdx;
+//                    }
+//                }
+//            }
+
+//            for (int k=0; k<3; k++) {
+//                if (current_color[k] > 1) {
+//                    current_color[k] = 1;
+//                } else if (current_color[k] < 0) {
+//                    current_color[k] = 0;
+//                }
+//            }
+
+
         }
 
-        if (level == 0 ) {
-            return t;
-        }
-
-        for (int i=0; i<3; i++) {
-            current_color[i] = color[i];
-        }
         return t;
     }
 };
@@ -125,7 +275,6 @@ struct Floor: object{
 };
 
 
-extern vector<object*> objects;
-extern vector<point> lights; //actually not point, vector
+
 
 #endif

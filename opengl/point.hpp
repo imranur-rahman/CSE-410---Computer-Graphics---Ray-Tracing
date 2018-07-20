@@ -63,11 +63,16 @@ struct point
     }
 };
 
-struct ray{
+point operator * (double d, point& pt)
+{
+    return pt * d;
+}
+
+struct Ray{
     point start;
     point dir;
 
-    ray(point start, point dir)
+    Ray(point start, point dir)
     {
         this->start = start;
         this->dir = dir;

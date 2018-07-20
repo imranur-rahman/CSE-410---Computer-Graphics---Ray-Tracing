@@ -375,7 +375,7 @@ void capture()
             point cornerDir = topLeft + r*j*du - u*i*dv;
             //cout<<cornerDir;
 
-            ray r(pos, cornerDir - pos);
+            Ray r(pos, cornerDir - pos);
 
             int nearest=-1;
             double minT = 9999999;
