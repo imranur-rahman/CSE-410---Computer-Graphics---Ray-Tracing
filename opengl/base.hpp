@@ -358,7 +358,7 @@ struct Floor: object{
 
                 double tObj = objects[j]->getIntersectionT(&L);
 
-                if(tObj > 0 || abs(tObj) > len) {
+                if(tObj > 0) {
                     flag = true;
                     break;
                 }
@@ -466,6 +466,13 @@ struct Triangle: object {
         this->a = a;
         this->b = b;
         this->c = c;
+    }
+
+    Triangle(point ar[3])
+    {
+        this->a = ar[0];
+        this->b = ar[1];
+        this->c = ar[2];
     }
 
     void draw() {
@@ -578,7 +585,253 @@ struct Triangle: object {
 
                 double tObj = objects[j]->getIntersectionT(&L);
 
-                if(tObj > 0 || abs(tObj) > len) {
+                if(tObj > 0) {
+                    flag = true;
+                    break;
+                }
+
+
+            }
+
+            if (flag){
+
+                double lambert = dotProduct(L.dir, normal);
+                double phong = pow(dotProduct(reflection, ray->dir), shine);
+
+                if(lambert < 0) lambert = 0;
+                if(phong < 0) phong = 0;
+
+                for (int k=0; k<3; k++) {
+                    current_color[k] += source_factor * lambert * co_efficients[DIFFUSE] * color[k];
+                    current_color[k] += source_factor * phong * co_efficients[SPECULAR] * color[k];
+                }
+            }
+
+            if (level < recursion_level) {
+
+                start = intersectionPoint + reflection * 1.0;
+
+                Ray reflectionRay(start, reflection);
+
+                int nearest=-1;
+                double minT = 9999999;
+                double reflected_color[3];
+
+                for (int k=0; k < objects.size(); k++) {
+
+                    double tk = objects[k]->getIntersectionT(&reflectionRay);
+
+                    if(tk <= 0) {
+                        continue;
+                    } else if (tk < minT) {
+                        minT = tk;
+                        nearest = k;
+                    }
+
+                    //cout<<tk<<endl;
+                }
+
+                if(nearest!=-1) {
+
+                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+
+                    for (int k=0; k<3; k++) {
+                        current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
+                    }
+                }
+
+//                start = intersectionPoint + refraction * 1.0;
+//
+//                Ray refractionRay(start, refraction);
+//
+//                nearest=-1;
+//                minT = 9999999;
+//                double refracted_color[3];
+//
+//                for (int k=0; k < objects.size(); k++) {
+//
+//                    double tk = objects[k]->getIntersectionT(&refractionRay, true);
+//
+//                    if(tk <= 0) {
+//                        continue;
+//                    } else if (tk < minT) {
+//                        minT = tk;
+//                        nearest = k;
+//                    }
+//
+//                    //cout<<tk<<endl;
+//                }
+//
+//                if(nearest!=-1) {
+//
+//                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
+//
+//                    for (int k=0; k<3; k++) {
+//                        current_color[k] += refracted_color[k] * refIdx;
+//                    }
+//                }
+            }
+
+            for (int k=0; k<3; k++) {
+                if (current_color[k] > 1) {
+                    current_color[k] = 1;
+                } else if (current_color[k] < 0) {
+                    current_color[k] = 0;
+                }
+            }
+
+
+        }
+
+        return t;
+    }
+
+
+
+};
+
+
+struct GeneralQuadratic: object {
+
+public:
+
+    double A, B, C, D, E, F, G, H, I, J;
+
+    GeneralQuadratic(double coeff[10], point reff, double length, double width, double height) {
+        this->A = coeff[0];
+        this->B = coeff[1];
+        this->C = coeff[2];
+        this->D = coeff[3];
+        this->E = coeff[4];
+        this->F = coeff[5];
+        this->G = coeff[6];
+        this->H = coeff[7];
+        this->I = coeff[8];
+        this->J = coeff[9];
+        this->reference_point = reff;
+        this->height = height;
+        this->width = width;
+        this->length = length;
+    }
+
+    void draw() {}
+
+    point getNormal(point intersection) {
+
+        double m = 2 * A * intersection.x + D * intersection.y + F * intersection.z  + G;//dF/dx
+        double n = 2 * B * intersection.y + D * intersection.x + E * intersection.z  + H;//dF/dy
+        double o = 2 * C * intersection.z + E * intersection.y + F * intersection.x  + I;//dF/dz
+
+        point normal(m, n, o);
+        normal.normalize();
+        return normal;
+    }
+
+    double getIntersectionT(Ray* ray) {
+
+        double a = A * ray->dir.x * ray->dir.x + B * ray->dir.y * ray->dir.y + C * ray->dir.z * ray->dir.z
+                 + D * ray->dir.x * ray->dir.y + E * ray->dir.y * ray->dir.z + F * ray->dir.z * ray->dir.x;
+        double b = 2 * (A * ray->start.x * ray->dir.x + B * ray->start.y * ray->dir.y + C * ray->start.z * ray->dir.z) +
+                 + D * (ray->start.x * ray->dir.y + ray->dir.x * ray->start.y)
+                 + E * (ray->start.y * ray->dir.z + ray->dir.y * ray->start.z)
+                 + F * (ray->start.z * ray->dir.x + ray->dir.z * ray->start.x)
+                 + G * ray->dir.x + H * ray->dir.y + I * ray->dir.z;
+        double c = A * ray->start.x * ray->start.x + B * ray->start.y * ray->start.y + C * ray->start.z * ray->start.z
+                 + D * ray->start.x * ray->start.y + E * ray->start.y * ray->start.z + F * ray->start.z * ray->start.x
+                 + G * ray->start.x + H * ray->start.y + I * ray->start.z + J;
+
+        double d = b*b - 4*a*c;
+
+
+        if (d < 0) {
+            return -1;
+        }
+
+        double t1 = (- b + sqrt(d)) / (2.0*a);
+        double t2 = (- b - sqrt(d)) / (2.0*a);
+
+
+        point intersectionPoint1 = ray->start + ray->dir * t1;
+        point intersectionPoint2 = ray->start + ray->dir * t2;
+
+        double xMin = reference_point.x;
+        double xMax = xMin + length;
+
+        double yMin = reference_point.y;
+        double yMax = yMin + width;
+
+        double zMin = reference_point.z;
+        double zMax = zMin + height;
+
+        //cout<<xMin<<','<<xMax<<';'<<yMin<<','<<yMax<<';'<<zMin<<','<<zMax<<endl;
+        //cout<<intersectionPoint1<<intersectionPoint2;
+
+        bool flag1 = (length > 0 && (xMin > intersectionPoint1.x || intersectionPoint1.x > xMax) ||
+                      width > 0 && (yMin > intersectionPoint1.y || intersectionPoint1.y > yMax) ||
+                      height > 0 && (zMin > intersectionPoint1.z || intersectionPoint1.z > zMax));
+
+        bool flag2 = (length > 0 && (xMin > intersectionPoint2.x || intersectionPoint2.x > xMax) ||
+                      width > 0 && (yMin > intersectionPoint2.y || intersectionPoint2.y > yMax) ||
+                      height > 0 && (zMin > intersectionPoint2.z || intersectionPoint2.z > zMax));
+
+        //cout<<flag1<<','<<flag2<<endl;
+
+        if (flag1 && flag2) {
+            return -1;
+        } else if (flag1) {
+            return t2;
+        } else if (flag2) {
+            return t1;
+        } else {
+            return min(t1, t2);
+        }
+    }
+
+
+    double intersect(Ray* ray, double current_color[3], int level) {
+
+        double t = getIntersectionT(ray);
+
+        if (t <= 0) {
+            return -1;
+        }
+
+        if (level == 0 ) {
+            return t;
+        }
+
+
+        for (int i=0; i<3; i++) {
+            current_color[i] = color[i] * co_efficients[AMBIENT];
+        }
+
+
+        //cout<<t<<endl;
+        point intersectionPoint = ray->start + ray->dir * t;
+
+        point normal = getNormal(intersectionPoint);
+
+        point reflection = getReflection(ray, normal);
+
+        //point refraction = getRefraction(ray, normal);
+
+        for (int i=0; i<lights.size(); i++) {
+
+            point dir = lights[i] - intersectionPoint;
+            double len = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+            dir.normalize();
+
+            point start = intersectionPoint + dir*1.0;
+            Ray L(start, dir);
+            //cout<<intersectionPoint<<L.start<<L.dir;
+
+            bool flag = false;
+
+            for (int j=0; j < objects.size(); j++) {
+
+                double tObj = objects[j]->getIntersectionT(&L);
+
+                if(tObj > 0) {
                     flag = true;
                     break;
                 }

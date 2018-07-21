@@ -335,19 +335,19 @@ void loadTestData()
     double radius = 10;
     object *temp;
 
-	temp=new sphere(center, radius); // Center(0,0,10), Radius 10
-	temp->setColor(1,0,0);
-	temp->setCoEfficients(0.4,0.2,0.2,0.2);
-	temp->setShine(1);
-
-	objects.push_back(temp);
-
-	temp=new sphere({10,40,0}, radius); // Center(0,0,10), Radius 10
-	temp->setColor(0,1,0);
-	temp->setCoEfficients(0.4,0.2,0.2,0.2);
-	temp->setShine(1);
-
-	objects.push_back(temp);
+//	temp=new sphere(center, radius); // Center(0,0,10), Radius 10
+//	temp->setColor(1,0,0);
+//	temp->setCoEfficients(0.4,0.2,0.2,0.2);
+//	temp->setShine(1);
+//
+//	objects.push_back(temp);
+//
+//	temp=new sphere({10,40,0}, radius); // Center(0,0,10), Radius 10
+//	temp->setColor(0,1,0);
+//	temp->setCoEfficients(0.4,0.2,0.2,0.2);
+//	temp->setShine(1);
+//
+//	objects.push_back(temp);
 
 	point light1(-50,50,50);
 	lights.push_back(light1);
@@ -358,11 +358,132 @@ void loadTestData()
 	temp->setShine(1);
 	objects.push_back(temp);
 
-	temp = new Triangle({10,10,0}, {10,20,0}, {15,15,20});
-	temp->setColor(0,0,1);
-	temp->setCoEfficients(0.4,0.2,0.2,0.2);
-	temp->setShine(1);
-	objects.push_back(temp);
+//	temp = new Triangle({10,10,0}, {10,20,0}, {15,15,20});
+//	temp->setColor(0,0,1);
+//	temp->setCoEfficients(0.4,0.2,0.2,0.2);
+//	temp->setShine(1);
+//	objects.push_back(temp);
+
+	point a1(50,30,0);
+    point b1(70,60,0);
+    point c1(50,45,50);
+    point q[3];
+    q[0] = a1;q[1] = b1;q[2] = c1;
+    temp = new Triangle(q);
+    temp->setColor(1, 0, 0);
+    temp->setCoEfficients(0.4, 0.2, 0.1, 0.3);
+    temp->setShine(5);
+    objects.push_back(temp);
+}
+
+void loadActualData() {
+
+    freopen("scene.txt", "r", stdin);
+
+    cin>>recursion_level;
+    cin>>imageWidth;
+    imageHeight = imageWidth;
+
+    int numOfObjects;
+    cin>>numOfObjects;
+
+    string command;
+    double a, b, c, radius;
+
+    object *temp;
+
+    for (int i=0; i<numOfObjects; i++) {
+        cin>>command;
+
+        if (command == "sphere") {
+
+            cin>>a>>b>>c;
+            point center(a, b, c);
+
+            cin>>radius;
+            temp = new sphere(center, radius);
+
+            cin>>a>>b>>c;
+            temp->setColor(a, b, c);
+
+            cin>>a>>b>>c>>radius;
+            temp->setCoEfficients(a, b, c, radius);
+
+            cin>>a;
+            temp->setShine(a);
+
+            objects.push_back(temp);
+        }
+
+        else if (command == "triangle") {
+
+            cin>>a>>b>>c;
+            point A(a, b, c);
+
+            cin>>a>>b>>c;
+            point B(a, b, c);
+
+            cin>>a>>b>>c;
+            point C(a, b, c);
+
+            temp = new Triangle(A, B, C);
+
+            cin>>a>>b>>c;
+            temp->setColor(a, b, c);
+
+            cin>>a>>b>>c>>radius;
+            temp->setCoEfficients(a, b, c, radius);
+
+            cin>>a;
+            temp->setShine(a);
+
+            objects.push_back(temp);
+
+        }
+
+        else if (command == "general") {
+
+            double coeff[10];
+            for (int c=0; c<10; c++) {
+                cin>>coeff[c];
+            }
+
+            cin>>a>>b>>c;
+            point reff(a, b, c);
+
+            cin>>a>>b>>c;
+            temp = new GeneralQuadratic(coeff, reff, a, b, c);
+
+            cin>>a>>b>>c;
+            temp->setColor(a, b, c);
+
+            cin>>a>>b>>c>>radius;
+            temp->setCoEfficients(a, b, c, radius);
+
+            cin>>a;
+            temp->setShine(a);
+
+            objects.push_back(temp);
+
+        }
+
+    }
+
+    cin>>numOfObjects;
+    for (int i=0; i<numOfObjects; i++) {
+        cin>>a>>b>>c;
+
+        point light(a, b, c);
+        lights.push_back(light);
+    }
+
+
+    temp = new Floor(1000, 20);
+    temp->setCoEfficients(0.4,0.2,0.2,0.2);
+    temp->setShine(1);
+    objects.push_back(temp);
+
+
 }
 
 void capture()
@@ -451,7 +572,8 @@ int main(int argc, char **argv){
 	glutSpecialFunc(specialKeyListener);
 	glutMouseFunc(mouseListener);
 
-	loadTestData();
+	//loadTestData();
+	loadActualData();
 
 	glutMainLoop();		//The main loop of OpenGL
 
