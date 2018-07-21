@@ -357,6 +357,12 @@ void loadTestData()
 	temp->setCoEfficients(0.4,0.2,0.2,0.2);
 	temp->setShine(1);
 	objects.push_back(temp);
+
+	temp = new Triangle({10,10,0}, {10,20,0}, {15,15,20});
+	temp->setColor(0,0,1);
+	temp->setCoEfficients(0.4,0.2,0.2,0.2);
+	temp->setShine(1);
+	objects.push_back(temp);
 }
 
 void capture()
