@@ -378,14 +378,20 @@ void loadTestData()
 
 void loadActualData() {
 
-    freopen("scene.txt", "r", stdin);
+    //freopen("scene.txt", "r", stdin);
+    ifstream fin("scene.txt");
+    if(fin.is_open() == false)
+    {
+        cout << "very serious error";
+        return;
+    }
 
-    cin>>recursion_level;
-    cin>>imageWidth;
+    fin>>recursion_level;
+    fin>>imageWidth;
     imageHeight = imageWidth;
 
     int numOfObjects;
-    cin>>numOfObjects;
+    fin>>numOfObjects;
 
     string command;
     double a, b, c, radius;
@@ -393,23 +399,23 @@ void loadActualData() {
     object *temp;
 
     for (int i=0; i<numOfObjects; i++) {
-        cin>>command;
+        fin>>command;
 
         if (command == "sphere") {
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             point center(a, b, c);
 
-            cin>>radius;
+            fin>>radius;
             temp = new sphere(center, radius);
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             temp->setColor(a, b, c);
 
-            cin>>a>>b>>c>>radius;
+            fin>>a>>b>>c>>radius;
             temp->setCoEfficients(a, b, c, radius);
 
-            cin>>a;
+            fin>>a;
             temp->setShine(a);
 
             objects.push_back(temp);
@@ -417,24 +423,24 @@ void loadActualData() {
 
         else if (command == "triangle") {
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             point A(a, b, c);
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             point B(a, b, c);
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             point C(a, b, c);
 
             temp = new Triangle(A, B, C);
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             temp->setColor(a, b, c);
 
-            cin>>a>>b>>c>>radius;
+            fin>>a>>b>>c>>radius;
             temp->setCoEfficients(a, b, c, radius);
 
-            cin>>a;
+            fin>>a;
             temp->setShine(a);
 
             objects.push_back(temp);
@@ -445,22 +451,22 @@ void loadActualData() {
 
             double coeff[10];
             for (int c=0; c<10; c++) {
-                cin>>coeff[c];
+                fin>>coeff[c];
             }
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             point reff(a, b, c);
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             temp = new GeneralQuadratic(coeff, reff, a, b, c);
 
-            cin>>a>>b>>c;
+            fin>>a>>b>>c;
             temp->setColor(a, b, c);
 
-            cin>>a>>b>>c>>radius;
+            fin>>a>>b>>c>>radius;
             temp->setCoEfficients(a, b, c, radius);
 
-            cin>>a;
+            fin>>a;
             temp->setShine(a);
 
             objects.push_back(temp);
@@ -469,9 +475,9 @@ void loadActualData() {
 
     }
 
-    cin>>numOfObjects;
+    fin>>numOfObjects;
     for (int i=0; i<numOfObjects; i++) {
-        cin>>a>>b>>c;
+        fin>>a>>b>>c;
 
         point light(a, b, c);
         lights.push_back(light);
@@ -483,7 +489,7 @@ void loadActualData() {
     temp->setShine(1);
     objects.push_back(temp);
 
-
+    fin.close();
 }
 
 void capture()

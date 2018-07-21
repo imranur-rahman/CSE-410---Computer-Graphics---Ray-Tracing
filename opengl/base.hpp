@@ -2,6 +2,7 @@
 #define BASE_H
 
 #include "drawing_code.hpp"
+#include "bitmap_image.hpp"
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -273,10 +274,15 @@ struct sphere: object{
 
 struct Floor: object{
     int numberOfTiles;
+    bitmap_image texture;
+    double texture_height, texture_width;
     Floor(double FloorWidth, double TileWidth){
         reference_point = point(-FloorWidth / 2.0, -FloorWidth / 2.0, 0);
         length = TileWidth;
         numberOfTiles = FloorWidth / TileWidth;
+        texture = bitmap_image("bd.bmp");
+        texture_height = texture.height() / abs(FloorWidth);
+        texture_width = texture.width() / abs(FloorWidth);
     }
 
     void draw(){
@@ -348,20 +354,20 @@ struct Floor: object{
             color[0] = color[1] = color[2] = 1;
         }
 
-//        unsigned char r, g, b;
-//        int x = (intersectionPoint.x + abs(reference_point.x)) * bdWidth;
-//        int y = (intersectionPoint.y + abs(reference_point.y)) * bdHeight;
-//
-//        //cout<<x<<','<<y<<endl;
-//
-//        bd.get_pixel(x, y, r, g, b);
-//
-//        double rgb[] = {r, g, b};
+        unsigned char r, g, b;
+        int x = (intersectionPoint.x + abs(reference_point.x)) * texture_width;
+        int y = (intersectionPoint.y + abs(reference_point.y)) * texture_height;
+
+        //cout<<x<<','<<y<<endl;
+
+        texture.get_pixel(x, y, r, g, b);
+
+        double rgb[] = {r, g, b};
         //cout<<rgb[0];
 
         for (int i=0; i<3; i++) {
-            //current_color[i] = color[i] * co_efficients[AMBIENT] * rgb[i] / 255.0;
-            current_color[i] = color[i] * co_efficients[AMBIENT];
+            current_color[i] = color[i] * co_efficients[AMBIENT] * rgb[i] / 255.0;
+            //current_color[i] = color[i] * co_efficients[AMBIENT];
         }
 
         point normal = getNormal(intersectionPoint);

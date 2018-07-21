@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1532162963 source:c:\users\sabit\desktop\1305015\opengl\main.cpp
+1532172369 source:c:\users\sabit\desktop\1305015\opengl\main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<math.h>
@@ -13,8 +13,9 @@
 	<GL/gl.h>
 	<GL/glu.h>
 
-1532170279 c:\users\sabit\desktop\1305015\opengl\base.hpp
+1532173784 c:\users\sabit\desktop\1305015\opengl\base.hpp
 	"drawing_code.hpp"
+	"bitmap_image.hpp"
 	<bits/stdc++.h>
 
 1531948835 c:\users\sabit\desktop\1305015\opengl\drawing_code.hpp
