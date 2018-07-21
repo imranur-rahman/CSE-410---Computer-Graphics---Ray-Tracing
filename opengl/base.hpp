@@ -20,6 +20,7 @@ struct object
 	double color[3];
 	double co_efficients[4];
 	double source_factor = 1.0;
+	double refracting_index = 1.5;
 
 	object(){ }
 	virtual void draw(){}
@@ -27,9 +28,31 @@ struct object
 	virtual double getIntersectionT(Ray* ray){}
 
 	point getReflection(Ray* ray, point normal) {
-        point reflection = ray->dir - 2.0 * dotProduct(ray->dir, normal) * normal;
+	    const double cosI = dotProduct(ray->dir, normal);
+        point reflection = ray->dir - 2.0 * cosI * normal;
         reflection.normalize();
         return reflection;
+    }
+    point getRefraction(Ray* ray, point normal) {
+
+//        point refraction(0, 0, 0);
+//
+//        double dot = dotProduct(normal, ray->dir);
+//        double k = 1.0 - refracting_index * refracting_index * (1.0 - dot * dot);
+//
+//        if (k >= 0) {
+//            refraction = ray->dir * refracting_index - normal * (refracting_index * dot + sqrt(k));
+//            refraction.normalize();
+//        }
+//
+//        return refraction;
+
+        const double cosI = -dotProduct(normal, ray->dir);
+        const double sinT2 = refracting_index * refracting_index * ( 1.0 - sinT2 );
+        if(sinT2 > 1.0)
+            return {0,0,0};
+        const double cosT = sqrt(1.0 - sinT2);
+        return refracting_index * ray->dir + (refracting_index * cosI - cosT) * normal;
     }
     void setColor(double r, double g, double b)
     {
@@ -63,6 +86,7 @@ struct sphere: object{
     void draw(){
         //write codes for drawing sphere
         glPushMatrix();
+
         glTranslatef(reference_point.x, reference_point.y, reference_point.z);
         drawSphere(length);
         glPopMatrix();
@@ -124,6 +148,7 @@ struct sphere: object{
         point normal = getNormal(intersectionPoint);
 
         point reflection = getReflection(ray, normal);
+        point refraction = getRefraction(ray, normal);
 
         for (int i=0; i<lights.size(); i++) {
 
@@ -189,45 +214,47 @@ struct sphere: object{
 
                 if(nearest!=-1) {
 
-                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    double ret = objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    if(ret <= 0)
+                        continue;
 
                     for (int k=0; k<3; k++) {
                         current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
                     }
                 }
+
+
+                start = intersectionPoint + refraction * 1.0;
+
+                Ray refractionRay(start, refraction);
+
+                nearest=-1;
+                minT = 9999999;
+                double refracted_color[3];
+
+                for (int k=0; k < objects.size(); k++) {
+
+                    double tk = objects[k]->getIntersectionT(&refractionRay);
+
+                    if(tk <= 0) {
+                        continue;
+                    } else if (tk < minT) {
+                        minT = tk;
+                        nearest = k;
+                    }
+
+                    //cout<<tk<<endl;
+                }
+
+                if(nearest!=-1) {
+
+                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
+
+                    for (int k=0; k<3; k++) {
+                        current_color[k] += refracted_color[k] * refracting_index;
+                    }
+                }
             }
-//
-//                start = intersectionPoint + refraction * 1.0;
-//
-//                Ray refractionRay(start, refraction);
-//
-//                nearest=-1;
-//                minT = 9999999;
-//                double refracted_color[3];
-//
-//                for (int k=0; k < objects.size(); k++) {
-//
-//                    double tk = objects[k]->getIntersectionT(&refractionRay, true);
-//
-//                    if(tk <= 0) {
-//                        continue;
-//                    } else if (tk < minT) {
-//                        minT = tk;
-//                        nearest = k;
-//                    }
-//
-//                    //cout<<tk<<endl;
-//                }
-//
-//                if(nearest!=-1) {
-//
-//                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
-//
-//                    for (int k=0; k<3; k++) {
-//                        current_color[k] += refracted_color[k] * refIdx;
-//                    }
-//                }
-//            }
 
             for (int k=0; k<3; k++) {
                 if (current_color[k] > 1) {
@@ -404,7 +431,9 @@ struct Floor: object{
 
                 if(nearest!=-1) {
 
-                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    double ret = objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    if(ret <= 0)
+                        continue;
 
                     for (int k=0; k<3; k++) {
                         current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
@@ -438,7 +467,7 @@ struct Floor: object{
 //                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
 //
 //                    for (int k=0; k<3; k++) {
-//                        current_color[k] += refracted_color[k] * refIdx;
+//                        current_color[k] += refracted_color[k] * refracting_index;
 //                    }
 //                }
             }
@@ -633,7 +662,9 @@ struct Triangle: object {
 
                 if(nearest!=-1) {
 
-                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    double ret = objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    if(ret <= 0)
+                        continue;
 
                     for (int k=0; k<3; k++) {
                         current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
@@ -667,7 +698,7 @@ struct Triangle: object {
 //                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
 //
 //                    for (int k=0; k<3; k++) {
-//                        current_color[k] += refracted_color[k] * refIdx;
+//                        current_color[k] += refracted_color[k] * refracting_index;
 //                    }
 //                }
             }
@@ -879,7 +910,9 @@ public:
 
                 if(nearest!=-1) {
 
-                    objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    double ret = objects[nearest]->intersect(&reflectionRay, reflected_color, level+1);
+                    if(ret <= 0)
+                        continue;
 
                     for (int k=0; k<3; k++) {
                         current_color[k] += reflected_color[k] * co_efficients[REFLECTION];
@@ -913,7 +946,7 @@ public:
 //                    objects[nearest]->intersect(&refractionRay, refracted_color, level+1);
 //
 //                    for (int k=0; k<3; k++) {
-//                        current_color[k] += refracted_color[k] * refIdx;
+//                        current_color[k] += refracted_color[k] * refracting_index;
 //                    }
 //                }
             }
