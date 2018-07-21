@@ -312,6 +312,8 @@ struct Floor: object{
         double yMin = reference_point.y;
         double yMax = yMin * (-1);
 
+
+
         if (xMin > intersectionPoint.x || intersectionPoint.x > xMax ||
                 yMin > intersectionPoint.y || intersectionPoint.y > yMax) {
             return -1;
