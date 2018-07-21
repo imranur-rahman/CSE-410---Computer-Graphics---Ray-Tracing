@@ -141,13 +141,13 @@ struct sphere: object{
 
                 double tObj = objects[j]->getIntersectionT(&L);
 
-                if(tObj > 0 || abs(tObj) > len) {
+                if(tObj > 0   &&  tObj <= len) {
                     flag = true;
                     break;
                 }
             }
 
-            if (flag){
+            if (flag == false){
 
                 double lambert = dotProduct(L.dir, normal);
                 double phong = pow(dotProduct(reflection, ray->dir), shine);
@@ -358,13 +358,13 @@ struct Floor: object{
 
                 double tObj = objects[j]->getIntersectionT(&L);
 
-                if(tObj > 0) {
+                if(tObj > 0  &&  tObj <= len) {
                     flag = true;
                     break;
                 }
             }
 
-            if (flag){
+            if (flag == false){
 
                 double lambert = dotProduct(L.dir, normal);
                 double phong = pow(dotProduct(reflection, ray->dir), shine);
@@ -568,9 +568,9 @@ struct Triangle: object {
             double len = sqrt(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
             dir.normalize();
 
-            if (dotProduct(dir, normal) > 0) {
-                normal = normal * (-1);
-            }
+//            if (dotProduct(dir, normal) > 0) {
+//                normal = normal * (-1);
+//            }
 
             point reflection = getReflection(ray, normal);
             //point refraction = getRefraction(ray, normal);
@@ -585,7 +585,7 @@ struct Triangle: object {
 
                 double tObj = objects[j]->getIntersectionT(&L);
 
-                if(tObj > 0) {
+                if(tObj > 0  &&  tObj <= len) {
                     flag = true;
                     break;
                 }
@@ -593,7 +593,7 @@ struct Triangle: object {
 
             }
 
-            if (flag){
+            if (flag == false){
 
                 double lambert = dotProduct(L.dir, normal);
                 double phong = pow(dotProduct(reflection, ray->dir), shine);
@@ -831,7 +831,7 @@ public:
 
                 double tObj = objects[j]->getIntersectionT(&L);
 
-                if(tObj > 0) {
+                if(tObj > 0  &&  tObj <= len) {
                     flag = true;
                     break;
                 }
@@ -839,7 +839,7 @@ public:
 
             }
 
-            if (flag){
+            if (flag == false){
 
                 double lambert = dotProduct(L.dir, normal);
                 double phong = pow(dotProduct(reflection, ray->dir), shine);
