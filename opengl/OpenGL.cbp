@@ -56,7 +56,9 @@
 			<Add after="xcopy /y OpenGL\DLL\glut32.dll $TARGET_OUTPUT_DIR" />
 		</ExtraCommands>
 		<Unit filename="base.hpp" />
+		<Unit filename="drawing_code.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="point.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
